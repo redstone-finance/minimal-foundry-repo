@@ -1,0 +1,2 @@
+redstone-finance/=lib/redstone-oracles-monorepo/packages/evm-connector/contracts/
+forge-std/=lib/forge-std/src/
