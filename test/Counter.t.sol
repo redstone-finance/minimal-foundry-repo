@@ -13,8 +13,26 @@ contract CounterTest is Test {
     }
 
     function testIncrement() public {
-        counter.increment();
-        assertEq(counter.number(), 1);
+        // bytes memory encodedFunction = abi.encodeWithSignature("increment()");
+        // bytes memory encodedFunctionWithRedstonePayload = abi.encodePacked(
+        //     encodedFunction,
+        //     ""
+        // );
+
+        // // Securely getting oracle value
+        // (bool success, ) = address(counter).call(
+        //     encodedFunctionWithRedstonePayload
+        // );
+
+        vm.mockCall(
+            address(counter),
+            abi.encodeWithSelector(Counter.getOracleData.selector),
+            abi.encode(10)
+        );
+
+        counter.saveSumToCounter();
+
+        assertEq(counter.number(), 10);
     }
 
     function testSetNumber(uint256 x) public {
