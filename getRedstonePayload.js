@@ -1,4 +1,4 @@
-const { writeFileSync, readFileSync, appendFileSync } = require('fs');
+const { appendFileSync } = require('fs');
 const { DataPackage, NumericDataPoint, RedstonePayload } = require('./lib/redstone-oracles-monorepo/packages/protocol/dist/src/index');
 
 const args = process.argv.slice(2);
