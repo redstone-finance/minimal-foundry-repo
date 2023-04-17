@@ -1,29 +1,48 @@
-const timestampMilliseconds = Date.now();
-const mockWallets = [];
+const { writeFileSync, readFileSync, appendFileSync } = require('fs');
+const { DataPackage, NumericDataPoint, RedstonePayload } = require('./lib/redstone-oracles-monorepo/packages/protocol/dist/src/index');
 
-const dataPoints = [
-    { dataFeedId: "ETH", value: 1670.99 },
-    { dataFeedId: "BTC", value: 23077.68 },
-];
+const args = process.argv.slice(2);
 
-const signedDataPackages = {
-    ETH: [],
-    BTC: [],
-};
-
-for (const mockWallet of mockWallets) {
-    for (const dataPointObj of dataPoints) {
-        const dataPoint = new NumericDataPoint(dataPointObj);
-        const mockDataPackage = {
-            signer: mockWallet.address,
-            dataPackage: new DataPackage([dataPoint], timestampMilliseconds),
-        };
-        const privateKey = mockWallet.privateKey;
-        const signedDataPackage = mockDataPackage.dataPackage.sign(privateKey);
-        signedDataPackages[dataPointObj.dataFeedId].push(
-            signedDataPackage
-        );
-    }
+const exit = (code, message) => {
+  process.stderr.write(message);
+  appendFileSync("./getRedstonePayload.log.txt", message);
+  process.exit(code);
 }
 
-signedDataPackages;
+if (args.length === 0) {
+  exit(1, "You have to provide at least on dataFeed");
+}
+
+const dataFeeds = args[0].split(',');
+
+if (dataFeeds.length === 0) {
+  exit(2, "You have to provide at least on dataFeed");
+}
+
+const timestampMilliseconds = Date.now();
+
+const PRIVATE_KEY_1 = '0x548e7c2fae09cc353ffe54ed40609d88a99fab24acfc81bfbf5cd9c11741643d';
+
+const dataPoints = dataFeeds.map(arg => {
+  const [dataFeedId, value, decimals] = arg.split(':');
+
+  if (!dataFeedId || !value || !decimals) {
+    exit(3, "Input should have format: dataFeedId:value:decimals (example: BTC:120)");
+  }
+
+  return new NumericDataPoint({ dataFeedId, value: parseInt(value), decimals: parseInt(decimals) })
+});
+
+
+// Prepare unsigned data package
+const dataPackage = new DataPackage(dataPoints, timestampMilliseconds);
+
+// Prepare signed data packages
+const signedDataPackages = [
+  dataPackage.sign(PRIVATE_KEY_1),
+];
+
+const payload = RedstonePayload.prepare(signedDataPackages, "");
+
+process.stdout.write("0x" + payload)
+process.exit(0);

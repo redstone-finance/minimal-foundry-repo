@@ -9,34 +9,38 @@ contract CounterTest is Test {
 
     function setUp() public {
         counter = new Counter();
-        counter.setNumber(0);
     }
 
-    function testIncrement() public {
-        // bytes memory encodedFunction = abi.encodeWithSignature("increment()");
-        // bytes memory encodedFunctionWithRedstonePayload = abi.encodePacked(
-        //     encodedFunction,
-        //     ""
-        // );
+    function getRedstonePayload(
+        string memory priceFeed
+    ) public returns (bytes memory) {
+        string[] memory args = new string[](3);
+        args[0] = "node";
+        args[1] = "getRedstonePayload.js";
+        args[2] = priceFeed;
 
-        // // Securely getting oracle value
-        // (bool success, ) = address(counter).call(
-        //     encodedFunctionWithRedstonePayload
-        // );
+        return vm.ffi(args);
+    }
 
-        vm.mockCall(
-            address(counter),
-            abi.encodeWithSelector(Counter.getOracleData.selector),
-            abi.encode(10)
+    function testOracleData() public {
+        bytes memory redstonePayload = getRedstonePayload("BTC:120:8");
+
+        bytes memory encodedFunction = abi.encodeWithSignature(
+            "saveOracleData(bytes32)",
+            bytes32("BTC")
         );
 
-        counter.saveSumToCounter();
+        bytes memory encodedFunctionWithRedstonePayload = abi.encodePacked(
+            encodedFunction,
+            redstonePayload
+        );
 
-        assertEq(counter.number(), 10);
-    }
-
-    function testSetNumber(uint256 x) public {
-        counter.setNumber(x);
-        assertEq(counter.number(), x);
+        // Securely getting oracle value
+        (bool success, ) = address(counter).call(
+            encodedFunctionWithRedstonePayload
+        );
+        assertEq(success, true);
+        // 120 * 10 ** 8
+        assertEq(counter.number(), 12000000000);
     }
 }
