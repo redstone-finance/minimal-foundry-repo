@@ -27,7 +27,7 @@ const dataPoints = dataFeeds.map(arg => {
   const [dataFeedId, value, decimals] = arg.split(':');
 
   if (!dataFeedId || !value || !decimals) {
-    exit(3, "Input should have format: dataFeedId:value:decimals (example: BTC:120)");
+    exit(3, "Input should have format: dataFeedId:value:decimals (example: BTC:120:8)");
   }
 
   return new NumericDataPoint({ dataFeedId, value: parseInt(value), decimals: parseInt(decimals) })
