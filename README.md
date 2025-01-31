@@ -9,7 +9,7 @@ $ yarn -v
 1. Clone
    `git clone --recurse-submodules -j8 https://github.com/redstone-finance/minimal-foundry-repo.git`
 2. Build redstone protocol
-   `cd ./lib/redstone-oracles-monorepo/packages/protocol && yarn && yarn build`
+   `pushd ./lib/redstone-oracles-monorepo/packages/protocol && yarn workspaces focus && rm -rf ../cli && yarn add --dev typescript && yarn build && popd`
 3. Run tests
    `forge test --ffi -vvv`
 
